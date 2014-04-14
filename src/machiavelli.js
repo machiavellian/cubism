@@ -3,8 +3,8 @@ cubism_contextPrototype.machiavelli= function(host) {
   var source = {},
       context = this;
 
-  source.metric = function(target) {
-
+  source.metric = function(target, metricName) {
+    metricName = metricName || target
     var metric = context.metric(function(start, stop, step, callback) {
 
 	feed = host + "/metric/?metric="
@@ -18,7 +18,7 @@ cubism_contextPrototype.machiavelli= function(host) {
           if (data.error) return callback(new Error("machiavelli error: "+data.error));
           callback(null, data.map(function(d) { return d.y} ))
       });
-    }, target += "");
+    }, metricName);
     return metric;
   };
 
