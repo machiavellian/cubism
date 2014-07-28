@@ -6,6 +6,7 @@ cubism.context = function() {
       start1, stop1, // the start and stop for the next prepare event
       serverDelay = 5e3,
       clientDelay = 5e3,
+      utcTime = false,
       event = d3.dispatch("prepare", "beforechange", "change", "focus"),
       scale = context.scale = d3.time.scale().range([0, size]),
       timeout,
@@ -85,6 +86,20 @@ cubism.context = function() {
     clientDelay = +_;
     return update();
   };
+
+  // Set a true/false on UTC Time. If true: use d3.time utc objects
+  // Default: local time (d3.time objects, timezone is client local time
+  context.utcTime = function(_) { 
+         if (!arguments.length) return utcTime;
+         utcTime = _;
+         d =  d3.time.scale()
+         if (_) { //true
+                 d =  d3.time.scale.utc()
+         }
+          scale = context.scale = d.range([0, size])
+
+         return update();
+  }
 
   // Sets the focus to the specified index, and dispatches a "focus" event.
   context.focus = function(i) {
