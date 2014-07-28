@@ -69,7 +69,9 @@ cubism_contextPrototype.axis = function() {
 };
 
 d = d3.time.format
-if (cubism.context().utcTime()) { d = d3.time.format.utc; }
+if (cubism.context().utcTime()) { 
+	d = d3.time.format.utc;
+}
 
 var cubism_axisFormatSeconds = d("%H:%M:%S"),
     cubism_axisFormatMinutes = d("%H:%M"),
