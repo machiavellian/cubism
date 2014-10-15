@@ -25,3 +25,6 @@ cubism_contextPrototype.cube = function(host) {
 };
 
 var cubism_cubeFormatDate = d3.time.format.iso;
+if (cubism.context().utcTime()) { 
+	var cubism_cubeFormatDate = d3.time.format.utc.iso;
+} 

@@ -6,6 +6,7 @@ cubism.context = function() {
       start1, stop1, // the start and stop for the next prepare event
       serverDelay = 5e3,
       clientDelay = 5e3,
+      utcTime = false,
       event = d3.dispatch("prepare", "beforechange", "change", "focus"),
       scale = context.scale = d3.time.scale().range([0, size]),
       timeout,
@@ -76,6 +77,19 @@ cubism.context = function() {
     serverDelay = +_;
     return update();
   };
+
+  // Tag the horizon graph as being in UTC, true/false
+  context.utcTime = function(_) { 
+	  if (!arguments.length) return utcTime;
+	  utcTime = _;
+	  d =  d3.time.scale()
+	  if (_) { //true
+		  d =  d3.time.scale.utc()
+	  }
+	   scale = context.scale = d.range([0, size])
+
+	  return update();
+  }
 
   // The client delay is the amount of additional time we wait to fetch those
   // metrics from the server. The client and server delay combined represent the

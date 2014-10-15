@@ -28,6 +28,7 @@ cubism.context = function() {
       start1, stop1, // the start and stop for the next prepare event
       serverDelay = 5e3,
       clientDelay = 5e3,
+      utcTime = false,
       event = d3.dispatch("prepare", "beforechange", "change", "focus"),
       scale = context.scale = d3.time.scale().range([0, size]),
       timeout,
@@ -98,6 +99,19 @@ cubism.context = function() {
     serverDelay = +_;
     return update();
   };
+
+  // Tag the horizon graph as being in UTC, true/false
+  context.utcTime = function(_) { 
+	  if (!arguments.length) return utcTime;
+	  utcTime = _;
+	  d =  d3.time.scale()
+	  if (_) { //true
+		  d =  d3.time.scale.utc()
+	  }
+	   scale = context.scale = d.range([0, size])
+
+	  return update();
+  }
 
   // The client delay is the amount of additional time we wait to fetch those
   // metrics from the server. The client and server delay combined represent the
@@ -185,6 +199,9 @@ cubism_contextPrototype.cube = function(host) {
 };
 
 var cubism_cubeFormatDate = d3.time.format.iso;
+if (cubism.context().utcTime()) { 
+	var cubism_cubeFormatDate = d3.time.format.utc.iso;
+} 
 /* librato (http://dev.librato.com/v1/post/metrics) source
  * If you want to see an example of how to use this source, check: https://gist.github.com/drio/5792680
  */
@@ -463,20 +480,20 @@ cubism_contextPrototype.machiavelli= function(host) {
   var source = {},
       context = this;
 
-  source.metric = function(target, metricName) {
+  source.metric = function(target, metricName, postEffect) {
+    postEffect = postEffect || function(){};
     metricName = metricName || target
     var metric = context.metric(function(start, stop, step, callback) {
-
 	feed = host + "/metric/?metric="
 	      + target
 	      + "&start=" + cubism_machiavelliFormatDate(start - 2 * step)
-	      + "&end=" + cubism_machiavelliFormatDate(stop - 1000)
+	      + "&stop=" + cubism_machiavelliFormatDate(stop - 1000)
 	      + "&step="+ step/1000
 	d3.json(feed
           , function(data) {
           if (!data || data.length == 0) return callback(new Error("error loading data - no data returned"));
           if (data.error) return callback(new Error("machiavelli error: "+data.error));
-          callback(null, data.map(function(d) { return d.y} ))
+          callback(postEffect(), data.map(function(d) { return d.y} ))
       });
     }, metricName);
     return metric;
@@ -795,7 +812,7 @@ cubism_contextPrototype.horizon = function() {
       metric = cubism_identity,
       extent = null,
       title = cubism_identity,
-      format = d3.format(".2s"),
+      format = d3.format(".4s"),
       colors = ["#08519c","#3182bd","#6baed6","#bdd7e7","#bae4b3","#74c476","#31a354","#006d2c"];
 
   function horizon(selection) {
