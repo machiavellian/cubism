@@ -458,6 +458,40 @@ function cubism_graphiteParse(text) {
       .slice(1) // the first value is always None?
       .map(function(d) { return +d; });
 }
+cubism_contextPrototype.machiavelli= function(host) {
+  if (!arguments.length) host = "";
+  var source = {},
+      context = this;
+
+  source.metric = function(target, metricName) {
+    metricName = metricName || target
+    var metric = context.metric(function(start, stop, step, callback) {
+
+	feed = host + "/metric/?metric="
+	      + target
+	      + "&start=" + cubism_machiavelliFormatDate(start - 2 * step)
+	      + "&end=" + cubism_machiavelliFormatDate(stop - 1000)
+	      + "&step="+ step/1000
+	d3.json(feed
+          , function(data) {
+          if (!data || data.length == 0) return callback(new Error("error loading data - no data returned"));
+          if (data.error) return callback(new Error("machiavelli error: "+data.error));
+          callback(null, data.map(function(d) { return d.y} ))
+      });
+    }, metricName);
+    return metric;
+  };
+
+  source.toString = function() {
+    return host;
+  };
+
+  return source;
+};
+
+function cubism_machiavelliFormatDate(time) {                                                                                                                                        
+  return Math.floor(time / 1000);
+}
 cubism_contextPrototype.gangliaWeb = function(config) {
   var host = '',
       uriPathPrefix = '/ganglia2/';
@@ -1202,6 +1236,15 @@ cubism_contextPrototype.axis = function() {
       scale = context.scale,
       axis_ = d3.svg.axis().scale(scale);
 
+  d = d3.time.format
+  if (context.utcTime()) {
+      d = d3.time.format.utc;
+  }
+
+  var cubism_axisFormatSeconds = d("%H:%M:%S"),
+      cubism_axisFormatMinutes = d("%H:%M"),
+      cubism_axisFormatDays = d("%B %d");
+
   var formatDefault = context.step() < 6e4 ? cubism_axisFormatSeconds
       : context.step() < 864e5 ? cubism_axisFormatMinutes
       : cubism_axisFormatDays;
@@ -1266,10 +1309,6 @@ cubism_contextPrototype.axis = function() {
       "tickPadding",
       "tickFormat");
 };
-
-var cubism_axisFormatSeconds = d3.time.format("%H:%M:%S"),
-    cubism_axisFormatMinutes = d3.time.format("%H:%M"),
-    cubism_axisFormatDays = d3.time.format("%B %d");
 cubism_contextPrototype.rule = function() {
   var context = this,
       metric = cubism_identity;
