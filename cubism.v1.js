@@ -513,7 +513,8 @@ function cubism_machiavelliFormatDate(time) {
 function machiavelli_error(target,msg) {
         var t = $.grep(chart.metric, function(i,d){ return i.id == target})[0].title //this wont work outside clizia
         $("span:contains('"+t+"')").filter(".title").append(" -- "+msg);
-        new Error(msg);
+	if (typeof chart == "object") { chart.metric_failed() }
+	return  new Error(msg);
 }
 cubism_contextPrototype.gangliaWeb = function(config) {
   var host = '',
